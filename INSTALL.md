@@ -195,3 +195,26 @@ plugin_manager remove_bundle → target: @local/dsh-photoshop-genfill
 ```
 
 这会移除插件和它带进来的 MCP 连接。`outputDir` 里的历史输出不会自动删除，需要的话手动清理。
+
+---
+
+## 10. 开发与自测
+
+```bash
+npm test
+```
+
+测试包含**真实驱动 Photoshop** 的桥接与端到端用例：会新建一个临时文档、做放置/蒙版/撤销验证，最后关闭并还原文档集合。
+
+因此两点必须注意：
+
+- **必须串行执行**。`npm test` 已固定 `--test-concurrency=1`，因为多个测试文件会同时操作同一个 Photoshop 实例，并行跑会互相干扰（表现为「文档数基线」断言失败）。
+- **跑测试时别在 Photoshop 里手动开关文档**，否则基线会漂移。若失败提示 `pre-existing Photoshop documents must still be open`，先关掉多余文档再重跑。
+
+不带 Photoshop 环境时，可以只跑不依赖 PS 的部分：
+
+```bash
+node --test tests/image-api.test.mjs
+```
+
+需要真实图片 API 的用例在未设置 `PS_GENFILL_API_KEY` 时会自动跳过。

@@ -706,6 +706,67 @@ test('edit(): request shape is inspectable via an injected fetch (FormData)', as
   assert.equal(init.headers['content-type'], undefined, 'content-type must be left to fetch (boundary)')
 })
 
+test('separate generation and edit models route to their own endpoint', async () => {
+  const inputDir = await tmpOutDir('split-models-input')
+  const inputPath = path.join(inputDir, 'input.png')
+  await writeFile(inputPath, TEST_PNG)
+  const { fetchImpl, calls } = makeInjectedFetch({
+    generationPayload: { data: [{ b64_json: TEST_PNG_B64 }] },
+    editPayload: { data: [{ b64_json: TEST_PNG_B64 }] },
+  })
+  const api = createImageApi({
+    baseUrl: 'https://api.test/v1',
+    apiKey: 'test-key',
+    model: 'fallback-model',
+    generationModel: 'gen-model',
+    editModel: 'edit-model',
+    timeoutMs: 5000,
+    outputDir: await tmpOutDir('split-models-out'),
+    fetchImpl,
+  })
+
+  await api.generate({ prompt: 'draw a cat', n: 1 })
+  await api.edit({ prompt: 'repaint this', imagePath: inputPath })
+
+  assert.equal(calls.length, 2)
+  const [generateCall, editCall] = calls
+  assert.equal(generateCall.url, 'https://api.test/v1/images/generations')
+  assert.equal(JSON.parse(generateCall.init.body).model, 'gen-model')
+  assert.equal(editCall.url, 'https://api.test/v1/images/edits')
+  assert.equal(editCall.init.body.get('model'), 'edit-model')
+  assert.notEqual(
+    JSON.parse(generateCall.init.body).model,
+    editCall.init.body.get('model'),
+    'the two endpoints must not collapse onto one model',
+  )
+})
+
+test('a blank generation or edit model falls back to the shared model', async () => {
+  const inputDir = await tmpOutDir('fallback-models-input')
+  const inputPath = path.join(inputDir, 'input.png')
+  await writeFile(inputPath, TEST_PNG)
+  const { fetchImpl, calls } = makeInjectedFetch({
+    generationPayload: { data: [{ b64_json: TEST_PNG_B64 }] },
+    editPayload: { data: [{ b64_json: TEST_PNG_B64 }] },
+  })
+  const api = createImageApi({
+    baseUrl: 'https://api.test/v1',
+    apiKey: 'test-key',
+    model: 'fallback-model',
+    generationModel: '',
+    editModel: '',
+    timeoutMs: 5000,
+    outputDir: await tmpOutDir('fallback-models-out'),
+    fetchImpl,
+  })
+
+  await api.generate({ prompt: 'draw a cat', n: 1 })
+  await api.edit({ prompt: 'repaint this', imagePath: inputPath })
+
+  assert.equal(JSON.parse(calls[0].init.body).model, 'fallback-model')
+  assert.equal(calls[1].init.body.get('model'), 'fallback-model')
+})
+
 test('generate(): JSON request body is inspectable via an injected fetch', async () => {
   const { fetchImpl, calls } = makeInjectedFetch({ generationPayload: { data: [{ b64_json: TEST_PNG_B64 }] } })
   const api = createImageApi({

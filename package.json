@@ -4,6 +4,32 @@
   "private": true,
   "description": "Image-grounded Photoshop retouch agent for DeepSeek Harness: native photoshop-mcp tools, verified canvas previews, and optional OpenAI-compatible image editing.",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aliax-LI/dsh-photoshop-genfill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Aliax-LI/dsh-photoshop-genfill/issues"
+  },
+  "homepage": "https://github.com/Aliax-LI/dsh-photoshop-genfill#readme",
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh-bundle",
+    "photoshop",
+    "retouch",
+    "photo-editing",
+    "gpt-image-2",
+    "image-generation",
+    "mcp"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -17,7 +43,10 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "INSTALL.md",
+    "CONTRACT.md",
+    "LICENSE"
   ],
   "optionalDependencies": {
     "@deepseek-ai/schemastery": "^3.18.5"
