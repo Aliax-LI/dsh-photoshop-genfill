@@ -13,6 +13,7 @@
  * @module @local/dsh-photoshop-genfill
  */
 
+import z from '@deepseek-ai/schemastery'
 import { createPsBridge } from './lib/ps-bridge.js'
 import { createImageApi } from './lib/image-api.js'
 import { createPipeline } from './lib/pipeline.js'
@@ -45,71 +46,41 @@ function normalizeBaseUrl(raw) {
   return url
 }
 
-/**
- * Normalize a raw Loader config into the plugin's effective config.
- * Never throws: collects {@link issues} instead so the Config hook can report them.
- */
-function normalizeConfig(raw, issues = []) {
+export const Config = z.object({
+  apiBaseUrl: z.string().default(DEFAULTS.apiBaseUrl),
+  apiKey: z.string().default('').volatile(),
+  model: z.string().default(DEFAULTS.model),
+  generationModel: z.string().default(''),
+  editModel: z.string().default(''),
+  photoshopApp: z.string().default(DEFAULTS.photoshopApp),
+  outputDir: z.string().default(DEFAULTS.outputDir),
+  requestTimeoutMs: z.number().min(10000).max(600000).default(DEFAULTS.requestTimeoutMs),
+  defaultFit: z.union([...FIT_VALUES]).default(DEFAULTS.defaultFit),
+})
+
+function normalizeConfig(raw) {
   const input = raw && typeof raw === 'object' ? raw : {}
   const string = (key, fallback) => {
     const value = input[key]
-    if (value === undefined || value === null || value === '') return fallback
-    if (typeof value !== 'string') {
-      issues.push({ message: `config.${key} must be a string`, path: [key] })
-      return fallback
-    }
-    return value.trim() || fallback
+    return value === undefined || value === null || value === '' ? fallback : String(value).trim() || fallback
   }
-  const apiBaseUrl = normalizeBaseUrl(string('apiBaseUrl', DEFAULTS.apiBaseUrl))
-  const apiKey = typeof input.apiKey === 'string' ? input.apiKey.trim() : DEFAULTS.apiKey
   const model = string('model', DEFAULTS.model)
   const generationModel = string('generationModel', model)
   const editModel = string('editModel', model)
-  const photoshopApp = string('photoshopApp', DEFAULTS.photoshopApp)
-  const outputDir = string('outputDir', DEFAULTS.outputDir)
-
-  let requestTimeoutMs = Number(input.requestTimeoutMs ?? DEFAULTS.requestTimeoutMs)
-  if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 10000) {
-    issues.push({ message: 'config.requestTimeoutMs must be a number >= 10000', path: ['requestTimeoutMs'] })
-    requestTimeoutMs = DEFAULTS.requestTimeoutMs
-  }
-  requestTimeoutMs = Math.min(600000, Math.round(requestTimeoutMs))
-
-  let defaultFit = string('defaultFit', DEFAULTS.defaultFit).toLowerCase()
-  if (!FIT_VALUES.includes(defaultFit)) {
-    issues.push({ message: `config.defaultFit must be one of ${FIT_VALUES.join(', ')}`, path: ['defaultFit'] })
-    defaultFit = DEFAULTS.defaultFit
-  }
-
+  const requestTimeoutMs = Math.min(600000, Math.max(10000, Math.round(Number(input.requestTimeoutMs ?? DEFAULTS.requestTimeoutMs))))
+  const defaultFit = FIT_VALUES.includes(string('defaultFit', DEFAULTS.defaultFit).toLowerCase()) ? string('defaultFit', DEFAULTS.defaultFit).toLowerCase() : DEFAULTS.defaultFit
   return {
-    apiBaseUrl,
-    apiKey: apiKey || process.env.PS_GENFILL_API_KEY || '',
+    apiBaseUrl: normalizeBaseUrl(string('apiBaseUrl', DEFAULTS.apiBaseUrl)),
+    apiKey: typeof input.apiKey === 'string' && input.apiKey.trim() ? input.apiKey.trim() : process.env.PS_GENFILL_API_KEY || '',
     model,
     generationModel,
     editModel,
-    photoshopApp,
-    outputDir,
+    photoshopApp: string('photoshopApp', DEFAULTS.photoshopApp),
+    outputDir: string('outputDir', DEFAULTS.outputDir),
     requestTimeoutMs,
     defaultFit,
   }
 }
-
-/**
- * Standard-schema config hook: defaults are applied here so `apply()` always sees
- * a complete config, and invalid values surface in the plugin row instead of at runtime.
- */
-export const Config = {
-  '~standard': {
-    version: 1,
-    vendor: 'dsh-photoshop-genfill',
-    validate(value) {
-      const issues = []
-      const normalized = normalizeConfig(value, issues)
-      return issues.length > 0 ? { issues } : { value: normalized }
-    },
-  },
-}
-
 function stamp() {
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')
