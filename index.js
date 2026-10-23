@@ -48,7 +48,7 @@ function normalizeBaseUrl(raw) {
 
 export const Config = z.object({
   apiBaseUrl: z.string().default(DEFAULTS.apiBaseUrl),
-  apiKey: z.string().default('').volatile(),
+  apiKey: z.string().default(''),
   model: z.string().default(DEFAULTS.model),
   generationModel: z.string().default(''),
   editModel: z.string().default(''),
