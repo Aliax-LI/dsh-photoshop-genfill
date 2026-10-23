@@ -482,8 +482,10 @@ function buildTools(pipeline, ctx) {
       execute: async (args) => {
         const state = await pipeline.getState()
         const summarized = summarizeStateForModel(state)
+        // Delete rather than assign undefined: an undefined property is not lossless
+        // JSON and makes the host reject the whole tool result.
         if (args.include_layers === false && summarized && typeof summarized === 'object') {
-          summarized.layers = undefined
+          delete summarized.layers
         }
         return {
           ok: state?.ok !== false,
