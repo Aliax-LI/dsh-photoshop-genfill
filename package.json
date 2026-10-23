@@ -19,6 +19,9 @@
     "icon.svg",
     "README.md"
   ],
+  "optionalDependencies": {
+    "@deepseek-ai/schemastery": "^3.18.5"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

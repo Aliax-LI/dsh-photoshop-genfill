@@ -13,7 +13,8 @@
  * @module @local/dsh-photoshop-genfill
  */
 
-import z from '@deepseek-ai/schemastery'
+import { createRequire } from 'node:module'
+import path from 'node:path'
 import { createPsBridge } from './lib/ps-bridge.js'
 import { createImageApi } from './lib/image-api.js'
 import { createPipeline } from './lib/pipeline.js'
@@ -46,16 +47,79 @@ function normalizeBaseUrl(raw) {
   return url
 }
 
-export const Config = z.object({
-  apiBaseUrl: z.string().default(DEFAULTS.apiBaseUrl),
-  apiKey: z.string().default(''),
-  model: z.string().default(DEFAULTS.model),
-  generationModel: z.string().default(''),
-  editModel: z.string().default(''),
-  photoshopApp: z.string().default(DEFAULTS.photoshopApp),
-  outputDir: z.string().default(DEFAULTS.outputDir),
-  requestTimeoutMs: z.number().min(10000).max(600000).default(DEFAULTS.requestTimeoutMs),
-  defaultFit: z.union([...FIT_VALUES]).default(DEFAULTS.defaultFit),
+/**
+ * Resolve schemastery so Settings can render a form.
+ *
+ * A bundle installed from npm carries it as a dependency and resolves normally.
+ * A bundle installed from a linked workspace directory has no node_modules of its
+ * own, so also look in the running profile and the DSH installation. Any failure
+ * returns null: Settings then shows raw config instead of a form, and activation
+ * still works — a missing schema must never take the plugin down.
+ */
+function schemaSearchRoots() {
+  const roots = []
+  const push = (value) => {
+    if (value && !roots.includes(value)) roots.push(value)
+  }
+  if (process.env.DSH_PROFILE_DIR) push(process.env.DSH_PROFILE_DIR)
+  if (typeof process.resourcesPath === 'string') {
+    push(path.join(process.resourcesPath, 'app.asar', 'dsh'))
+    push(path.join(process.resourcesPath, 'app', 'dsh'))
+  }
+  if (process.execPath) {
+    push(path.join(path.dirname(process.execPath), '..', 'Resources', 'app.asar', 'dsh'))
+    push(path.join(path.dirname(process.execPath), '..', 'Resources', 'app', 'dsh'))
+  }
+  return roots
+}
+
+function loadSchemaBuilder() {
+  const isBuilder = (value) => typeof value === 'function' && typeof value.object === 'function'
+  const accept = (resolved) => (isBuilder(resolved?.default) ? resolved.default : isBuilder(resolved) ? resolved : null)
+  const specifier = '@deepseek-ai/schemastery'
+
+  let localRequire = null
+  try {
+    localRequire = createRequire(import.meta.url)
+  } catch {}
+
+  for (const root of schemaSearchRoots()) {
+    for (const anchor of [path.join(root, 'package.json'), path.join(root, 'node_modules', 'noop.js')]) {
+      try {
+        const found = accept(createRequire(anchor)(specifier))
+        if (found) return found
+      } catch {}
+    }
+  }
+
+  if (localRequire) {
+    try {
+      const found = accept(localRequire(specifier))
+      if (found) return found
+    } catch {}
+    for (const root of schemaSearchRoots()) {
+      try {
+        const found = accept(localRequire(localRequire.resolve(specifier, { paths: [root] })))
+        if (found) return found
+      } catch {}
+    }
+  }
+  return null
+}
+
+const z = loadSchemaBuilder()
+
+/** Settings form schema; undefined when schemastery cannot be resolved. */
+const settingsSchema = z?.object({
+  apiBaseUrl: z.string().default(DEFAULTS.apiBaseUrl).description('兼容 OpenAI 的图片服务地址，可带或不带 /v1。'),
+  apiKey: z.string().default('').description('Bearer Key。留空则使用环境变量 PS_GENFILL_API_KEY。'),
+  model: z.string().default(DEFAULTS.model).description('生成/编辑模型都留空时使用的回退模型。'),
+  generationModel: z.string().default('').description('文生图模型（ps_generate_layer / ps_generate_images）。留空回退到 model。'),
+  editModel: z.string().default('').description('图像编辑模型（ps_generative_fill / ps_image_edit）。留空回退到 model。'),
+  photoshopApp: z.string().default(DEFAULTS.photoshopApp).description('用于 AppleScript 自动化的 Photoshop 应用名。'),
+  outputDir: z.string().default(DEFAULTS.outputDir).description('抓取图与生成结果的保存目录。'),
+  requestTimeoutMs: z.number().min(10000).max(600000).default(DEFAULTS.requestTimeoutMs).description('单次图片 API 请求超时（毫秒）。'),
+  defaultFit: z.union([...FIT_VALUES]).default(DEFAULTS.defaultFit).description('生成结果放入画布时的适配方式。'),
 })
 
 function normalizeConfig(raw) {
@@ -81,6 +145,24 @@ function normalizeConfig(raw) {
     defaultFit,
   }
 }
+/**
+ * Config export: the native schema when available (so Settings renders a form),
+ * otherwise a standard-schema validator so bad values still surface in the plugin row.
+ */
+export const Config = settingsSchema ?? {
+  '~standard': {
+    version: 1,
+    vendor: 'dsh-photoshop-genfill',
+    validate(value) {
+      try {
+        return { value: normalizeConfig(value) }
+      } catch (error) {
+        return { issues: [{ message: error?.message ?? String(error), path: [] }] }
+      }
+    },
+  },
+}
+
 function stamp() {
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')

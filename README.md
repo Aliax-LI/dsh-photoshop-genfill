@@ -60,10 +60,10 @@ git clone https://github.com/<你的账号>/dsh-photoshop-genfill.git
 cd dsh-photoshop-genfill
 ```
 
-3. 在 Harness 中执行 `plugin_manager install_bundle`，将 `target` 指向仓库中的插件目录：
+3. 在 Harness 中执行 `plugin_manager install_bundle`，将 `target` 指向克隆下来的仓库目录：
 
 ```text
-<仓库目录>/plugins/dsh-photoshop-genfill
+<仓库目录>
 ```
 
 4. 在 Harness Settings → Plugins 中启用 `Photoshop Retouch Agent`，填写 API 地址、Key 和模型。
@@ -72,7 +72,7 @@ cd dsh-photoshop-genfill
 ### 从本地目录安装
 
 ```text
-plugin_manager install_bundle → target: /path/to/dsh-photoshop-genfill/plugins/dsh-photoshop-genfill
+plugin_manager install_bundle → target: /path/to/dsh-photoshop-genfill
 ```
 
 安装会同时启用 `photoshop-mcp` 和本插件的 Host 工具、命令与 Web 面板。
@@ -145,10 +145,10 @@ plugin_manager install_bundle → target: /path/to/dsh-photoshop-genfill/plugins
 ## 5. 实现结构
 
 ```
-plugins/dsh-photoshop-genfill/
+.
 ├── package.json          # bundle 清单：dsh.bundle.patch + dsh.client
 ├── cordis.patch.yml      # MCP 连接行 + Host 插件行（含配置）
-├── index.js              # Host：Config 校验、工具注册、斜杠命令注册
+├── index.js              # Host：Config schema、工具注册、斜杠命令注册
 ├── lib/
 │   ├── ps-bridge.js      # macOS：AppleScript → Photoshop ExtendScript，串行队列/超时/错误
 │   ├── ps-scripts.js     # ExtendScript 片段：读状态/抓选区/放置图层/加蒙版/撤销
