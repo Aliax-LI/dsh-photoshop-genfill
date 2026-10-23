@@ -50,6 +50,8 @@
 
 ## 2. 安装
 
+> 完整的从零安装、设置项说明和排障见 **[INSTALL.md](INSTALL.md)**。下面是精简版。
+
 ### 从 GitHub 安装
 
 1. 安装 DeepSeek Harness、Node.js 22+、Adobe Photoshop 2024+，并确保 Photoshop 可以被本机自动化控制。
@@ -74,6 +76,8 @@ cd dsh-photoshop-genfill
 ```text
 plugin_manager install_bundle → target: /path/to/dsh-photoshop-genfill
 ```
+
+> 提示：`install_bundle` 的 `registry` 参数是给 npm 包用的，安装本地目录时**不要传空字符串**，否则会报 `a registry must be an http(s) URL`。省略该参数即可。
 
 安装会同时启用 `photoshop-mcp` 和本插件的 Host 工具、命令与 Web 面板。
 
