@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Photoshop Retouch Agent",
+    "description": "An image-grounded Photoshop agent for real retouching: inspect the canvas, plan and use native layers, masks, and adjustments, then return a fresh canvas preview; use the gpt-image-2-compatible image API when a generative edit is appropriate. Includes agent tools, a composer panel, and slash commands."
+  }
+}

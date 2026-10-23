@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Photoshop 修图 Agent",
+    "description": "面向真实修图任务的 Photoshop Agent：先看画布、规划并操作原生图层/蒙版/调整工具，再返回修改后的画布预览；需要时再调用兼容 gpt-image-2 的图像编辑 API。提供 Agent 工具、快捷面板和斜杠命令。"
+  }
+}

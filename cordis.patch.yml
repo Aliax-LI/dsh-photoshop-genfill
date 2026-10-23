@@ -1,0 +1,32 @@
+# Public example configuration. Set apiKey in Harness Settings or use PS_GENFILL_API_KEY.
+- insert:
+    - id: photoshop-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: photoshop
+        transport: stdio
+        command: npx
+        args:
+          - '-y'
+          - '@alisaitteke/photoshop-mcp@1.7.37'
+        env:
+          npm_config_registry: 'https://registry.npmjs.org/'
+          LOG_LEVEL: '2'
+          PSMCP_FEEDBACK: '0'
+          PSMCP_UPDATE_CHECK: '0'
+          PHOTOSHOP_SCRIPT_TIMEOUT: '180000'
+        toolCallTimeoutMs: 240000
+        failOnStartupError: false
+
+    - id: photoshop-genfill
+      name: '@local/dsh-photoshop-genfill'
+      config:
+        apiBaseUrl: 'https://chatgpt2api.343426.xyz/v1'
+        apiKey: ''
+        model: 'gpt-image-2'
+        generationModel: 'gpt-image-2'
+        editModel: 'gpt-image-2'
+        photoshopApp: 'Adobe Photoshop 2026'
+        outputDir: '~/.dsh/photoshop-genfill'
+        requestTimeoutMs: 180000
+        defaultFit: 'cover'

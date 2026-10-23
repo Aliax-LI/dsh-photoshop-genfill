@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Generative fill layer stack with sparkle">
+  <defs>
+    <linearGradient id="psg-bg" x1="6" y1="2" x2="58" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4f7cff"/>
+      <stop offset="0.52" stop-color="#6f5cf7"/>
+      <stop offset="1" stop-color="#9d5cf6"/>
+    </linearGradient>
+    <linearGradient id="psg-front" x1="18" y1="34" x2="48" y2="47" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e9e6ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="url(#psg-bg)"/>
+  <path d="M15 1.5h34a13.5 13.5 0 0 1 13.5 13.5v.7C50 22.5 14 22.5 1.5 15.7V15A13.5 13.5 0 0 1 15 1.5Z" fill="#ffffff" fill-opacity="0.1"/>
+
+  <g>
+    <path d="M32 20.2 50 27 32 33.8 14 27Z" fill="#ffffff" fill-opacity="0.34"/>
+    <path d="M32 26.4 50 33.2 32 40 14 33.2Z" fill="#ffffff" fill-opacity="0.58"/>
+    <path d="M32 32.6 50 39.4 32 46.2 14 39.4Z" fill="url(#psg-front)"/>
+    <path d="M32 32.6 50 39.4 32 46.2 14 39.4Z" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1" stroke-linejoin="round"/>
+  </g>
+
+  <g>
+    <path d="M47.4 6.2c.5 3 1.9 4.5 4.9 5-3 .5-4.4 2-4.9 5-.5-3-1.9-4.5-4.9-5 3-.5 4.4-2 4.9-5Z" fill="#ffffff"/>
+    <path d="M55.1 20.6c.3 1.8 1.1 2.6 2.9 2.9-1.8.3-2.6 1.1-2.9 2.9-.3-1.8-1.1-2.6-2.9-2.9 1.8-.3 2.6-1.1 2.9-2.9Z" fill="#ffffff" fill-opacity="0.8"/>
+    <circle cx="13" cy="16" r="1.9" fill="#ffffff" fill-opacity="0.55"/>
+  </g>
+</svg>
